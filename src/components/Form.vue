@@ -1,120 +1,152 @@
 <template>
-  <form @submit.prevent="submitForm">
-    <v-text-field
-      v-model="state.name"
-      :counter="10"
-      :error-messages="v$.name.$errors.map(e => e.$message)"
-      label="Name"
-      required
-      @blur="v$.name.$touch"
-      @input="v$.name.$touch"
-    ></v-text-field>
-
-    <!-- Substituímos o campo de email por um campo de data com suporte para digitar -->
-    <v-menu
-      v-model="menu"
-      :close-on-content-click="false"
-      :nudge-right="40"
-      transition="scale-transition"
-      offset-y
-      max-width="290px"
-      min-width="auto"
-    >
-      <template v-slot:activator="{ on, attrs }">
+  <v-card max-width="725" class="mx-auto">
+    <v-card-title>Cadastro de Eventos</v-card-title>
+    <v-card-text>
+      <v-form>
         <v-text-field
-          v-model="state.date"
-          label="Data"
-          prepend-icon="mdi-calendar"
-          readonly
-          v-bind="attrs"
-          v-on="on"
-          :error-messages="v$.date.$errors.map(e => e.$message)"
-          required
-        ></v-text-field>
-      </template>
-      <v-date-picker
-        v-model="state.date"
-        no-title
-        scrollable
-        @input="menu = false" <!-- Fecha o menu ao selecionar -->
-      ></v-date-picker>
-    </v-menu>
-
-    <v-select
-      v-model="state.select"
-      :error-messages="v$.select.$errors.map(e => e.$message)"
-      :items="items"
-      label="Item"
-      required
-      @blur="v$.select.$touch"
-      @change="v$.select.$touch"
-    ></v-select>
-
-    <v-checkbox
-      v-model="state.checkbox"
-      :error-messages="v$.checkbox.$errors.map(e => e.$message)"
-      label="Do you agree?"
-      required
-      @blur="v$.checkbox.$touch"
-      @change="v$.checkbox.$touch"
-    ></v-checkbox>
-
-    <v-btn class="me-4" @click="submitForm">
-      submit
-    </v-btn>
-    <v-btn @click="clear">
-      clear
-    </v-btn>
-  </form>
+          ref="locationInput"
+          v-model="localEvent.location"
+          prepend-inner-icon="mdi-map-marker"
+          variant="underlined"
+          label="Local do Evento"
+          @focus="initializeAutocomplete"
+        />
+        <v-text-field
+          v-model="localEvent.name"
+          prepend-inner-icon="mdi-calendar"
+          variant="underlined"
+          label="Nome do Evento"
+        />
+        <v-text-field
+          v-model="localEvent.date"
+          prepend-inner-icon="mdi-calendar-clock"
+          variant="underlined"
+          label="Data do Evento"
+          type="date"
+        />
+        <v-textarea
+          v-model="localEvent.description"
+          prepend-inner-icon="mdi-text"
+          variant="underlined"
+          label="Descrição do Evento"
+        />
+        <v-file-input
+          v-model="localEvent.image"
+          prepend-inner-icon="mdi-image"
+          variant="underlined"
+          label="Imagem do Evento"
+          @change="previewImage"
+        />
+        <v-img v-if="imagePreview" :src="imagePreview" aspect-ratio="16/9" class="my-2"></v-img>
+      </v-form>
+    </v-card-text>
+    <v-card-actions>
+      <v-btn color="error" @click="resetForm">Cancelar</v-btn>
+      <v-spacer />
+      <v-btn color="primary" :disabled="!isFormValid" @click="saveEvent">Salvar</v-btn>
+    </v-card-actions>
+  </v-card>
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
-import { useVuelidate } from '@vuelidate/core'
-import { required } from '@vuelidate/validators'
+import { ref, computed } from 'vue'
 
-const initialState = {
-  name: '',
-  date: '',
-  select: null,
-  checkbox: null,
-}
-
-const state = reactive({
-  ...initialState,
+const props = defineProps({
+  event: {
+    type: Object,
+    default: () => ({})  // Fallback para evitar undefined
+  }
 })
 
-const items = [
-  'Item 1',
-  'Item 2',
-  'Item 3',
-  'Item 4',
-]
+const emit = defineEmits(['save-event'])
 
-const rules = {
-  name: { required },
-  date: { required }, // Validação para a data
-  select: { required },
-  checkbox: { required },
+const localEvent = ref({
+  ...props.event,
+  eventId: props.event?.eventId || Date.now(),  // Verifique se eventId existe
+  url: ''     // Adiciona a propriedade url
+})
+
+const imagePreview = ref(null)
+let autocomplete = null
+
+const locationInput = ref(null)  // Ref para o campo de localização
+
+// Computed property to check if the form is valid
+const isFormValid = computed(() =>
+  ['name', 'date', 'location', 'description'].every(field => localEvent.value[field])
+)
+
+// Function to reset the form
+const resetForm = () => {
+  Object.assign(localEvent.value, {
+    name: '',
+    date: '',
+    location: '',
+    description: '',
+    image: null,
+    eventId: Date.now(),
+    url: ''     // Reinicia a url
+  })
+  imagePreview.value = null
 }
 
-const v$ = useVuelidate(rules, state)
-const menu = ref(false) // Controla o estado do seletor de data
-
-function submitForm() {
-  v$.$touch() // Toca todos os campos para exibir erros
-  if (v$.$pending || v$.$invalid) {
-    return // Se ainda estiver validando ou inválido, não submeter
+// Async function to save the event
+const saveEvent = async () => {
+  if (localEvent.value.image && typeof localEvent.value.image !== 'string') {
+    const imageData = await readFileAsDataURL(localEvent.value.image)
+    localEvent.value.image = imageData
   }
-  // Lógica de envio do formulário
-  console.log('Formulário válido, enviando dados:', state)
+
+  // Salvar no Local Storage
+  const eventToSave = {
+    ...localEvent.value,
+    formatted_address: localEvent.value.location // Supondo que você queira salvar como formatted_address
+  }
+
+  localStorage.setItem(`event_${localEvent.value.eventId}`, JSON.stringify(eventToSave))
+
+  emit('save-event', eventToSave)
+  resetForm()
 }
 
-function clear() {
-  v$.value.$reset()
+// Function to preview image
+const previewImage = (event) => {
+  const file = event.target.files[0]
+  if (file) {
+    readFileAsDataURL(file).then(data => {
+      imagePreview.value = data
+    })
+  } else {
+    imagePreview.value = null
+  }
+}
 
-  for (const [key, value] of Object.entries(initialState)) {
-    state[key] = value
+// Helper function to read file as Data URL
+const readFileAsDataURL = (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result)
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
+}
+
+// Function to initialize Google Maps Autocomplete
+const initializeAutocomplete = () => {
+  if (!autocomplete) {
+    const inputElement = locationInput.value.$el.querySelector('input')  // Obtém o input interno
+    autocomplete = new google.maps.places.Autocomplete(inputElement)
+    autocomplete.addListener('place_changed', handlePlaceSelect)
+  }
+}
+
+// Function to handle place selection
+const handlePlaceSelect = () => {
+  const place = autocomplete.getPlace()
+  if (place && place.geometry) {
+    localEvent.value.location = place.formatted_address || ''
+    localEvent.value.url = place.url || ''     // Salva a URL
+    console.log('Selected place:', place)
   }
 }
 </script>

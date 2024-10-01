@@ -24,10 +24,6 @@ import { useRoute } from 'vue-router'  // Importa o hook para acessar a rota atu
 
 
 const drawer = ref(true)
-const status = ref('Logado')
-const deslogar = () => {
-  status.value = 'Deslogado'
-}
 
 // Acessa a rota atual usando useRoute
 const route = useRoute()
