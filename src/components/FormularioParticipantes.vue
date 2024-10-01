@@ -1,55 +1,46 @@
 <template>
   <v-dialog v-model="dialog" max-width="600px">
     <v-card>
-      <v-card-title class="text-center">Participar do Evento</v-card-title>
+      <v-card-title class="text-h5">Adicionar Participante</v-card-title>
       <v-card-text>
         <v-form>
           <v-text-field
             v-model="participant.name"
-            label="Nome"
-            prepend-inner-icon="mdi-account"
             :rules="[nameRules]"
-          />
+            label="Nome"
+            required
+          ></v-text-field>
           <v-text-field
             v-model="participant.phone"
-            label="Telefone"
-            prepend-inner-icon="mdi-phone"
             :rules="[phoneRules]"
-          />
+            label="Telefone"
+            required
+          ></v-text-field>
           <v-text-field
             v-model="participant.email"
-            label="Email"
-            prepend-inner-icon="mdi-email"
             :rules="[emailRules]"
-          />
+            label="Email"
+            required
+          ></v-text-field>
           <v-file-input
             v-model="participant.image"
-            label="Imagem (opcional)"
-            prepend-inner-icon="mdi-image"
+            label="Imagem"
             @change="previewImage"
-          />
+          ></v-file-input>
           <v-img v-if="imagePreview" :src="imagePreview" aspect-ratio="16/9" class="my-2"></v-img>
         </v-form>
       </v-card-text>
       <v-card-actions>
         <v-btn color="error" @click="closeDialog">Cancelar</v-btn>
-        <v-spacer />
-        <v-btn color="primary" :disabled="!isFormValid" @click="submitForm">Enviar</v-btn>
+        <v-spacer></v-spacer>
+        <v-btn color="primary" :disabled="!isFormValid" @click="saveParticipant">Salvar</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
 </template>
 
 <script setup>
-import { ref, computed, defineExpose, defineProps } from 'vue';
-
-// Define as props recebidas do componente pai
-const props = defineProps({
-  event: {
-    type: Object,
-    required: true
-  }
-});
+import { ref, computed } from 'vue';
 
 const dialog = ref(false);
 const participant = ref({
@@ -57,7 +48,7 @@ const participant = ref({
   phone: '',
   email: '',
   image: null,
-  eventId: null
+  eventId: null, // Inicializa o eventId como null
 });
 const imagePreview = ref(null);
 
@@ -65,54 +56,47 @@ const imagePreview = ref(null);
 const nameRules = (value) => value.length > 2 || 'Nome deve ter mais de 2 caracteres';
 const phoneRules = (value) => /^\d{11}$/.test(value) || 'Telefone deve ter 11 dígitos';
 const emailRules = (value) => /.+@.+\..+/.test(value) || 'Email inválido';
+const idRules = (value) => value !== null || 'ID do evento é obrigatório';
 
 // Computed para verificar a validade do formulário
 const isFormValid = computed(() => {
   return (
     nameRules(participant.value.name) === true &&
     phoneRules(participant.value.phone) === true &&
-    emailRules(participant.value.email) === true
+    emailRules(participant.value.email) === true &&
+    idRules(participant.value.eventId) === true
   );
 });
 
-// Fecha o diálogo
+// Fecha o diálogo e limpa os dados do participante
 const closeDialog = () => {
   dialog.value = false;
+  participant.value = {
+    name: '',
+    phone: '',
+    email: '',
+    image: null,
+    eventId: null, // Reseta o eventId para null
+  };
+  imagePreview.value = null;
 };
 
-// Envia o formulário e salva o participante
-const submitForm = () => {
-  const existingParticipants = JSON.parse(localStorage.getItem('participants')) || [];
-
-  if (participant.value.eventId === null) {
-    console.error('No event ID specified!');
-    return;
-  }
-
-  if (participant.value.image && typeof participant.value.image !== 'string') {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      participant.value.image = e.target.result;
-      existingParticipants.push({ ...participant.value });
-      localStorage.setItem('participants', JSON.stringify(existingParticipants));
-      closeDialog();
-    };
-    reader.readAsDataURL(participant.value.image);
-  } else {
-    existingParticipants.push({ ...participant.value });
-    localStorage.setItem('participants', JSON.stringify(existingParticipants));
-    closeDialog();
-  }
+// Salva o participante
+const saveParticipant = () => {
+  const participants = JSON.parse(localStorage.getItem('participants')) || [];
+  participants.push({ ...participant.value });
+  localStorage.setItem('participants', JSON.stringify(participants));
   console.log('Participante salvo:', participant.value);
+  closeDialog();
 };
 
 // Abre o diálogo com o eventId
 const openDialog = (eventId) => {
-  participant.value.eventId = eventId;
+  participant.value.eventId = eventId; // Define o eventId ao abrir o diálogo
   dialog.value = true;
 };
 
-// Pré-visualiza a imagem
+// Pré-visualização da imagem
 const previewImage = (event) => {
   const file = event.target.files[0];
   if (file) {
@@ -126,6 +110,5 @@ const previewImage = (event) => {
   }
 };
 
-// Expor a função openDialog para o componente pai
 defineExpose({ openDialog });
 </script>

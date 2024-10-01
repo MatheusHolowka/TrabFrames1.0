@@ -5,6 +5,7 @@
     </v-list-subheader>
     <v-list-item prepend-icon="mdi-home" title="Home" to="/" />
     <v-list-item prepend-icon="mdi-calendar-plus" title="Cadastro" to="/Cadastro" />
+    <v-list-item prepend-icon="mdi-calendar-remove" title="Gerenciar Eventos" to="/Gerenciar" />
   </v-list>
   <v-divider></v-divider>
 </template>

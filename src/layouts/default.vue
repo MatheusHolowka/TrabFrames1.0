@@ -12,7 +12,6 @@
     <v-main>
       <v-container>
         <RouterView />
-        <Grid v-if="isHomeRoute" />
       </v-container>
     </v-main>
   </v-app>
@@ -28,6 +27,4 @@ const drawer = ref(true)
 // Acessa a rota atual usando useRoute
 const route = useRoute()
 
-// Computa se a rota atual é a rota "/"
-const isHomeRoute = computed(() => route.path === '/')
 </script>
