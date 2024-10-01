@@ -139,24 +139,85 @@ onMounted(() => {
 </style>
 
 <template>
-  <v-card max-width="725" class="mx-auto">
-    <v-card-title>Cadastro de Eventos</v-card-title>
+  <v-card max-width="725" class="mx-auto my-5">
+    <v-card-title class="text-center">Cadastro de Eventos</v-card-title>
     <v-card-text>
       <v-form>
-        <v-text-field v-model="localEvent.name" prepend-inner-icon="mdi-calendar" variant="underlined" label="Nome do Evento" />
-        <v-text-field v-model="localEvent.date" prepend-inner-icon="mdi-calendar-clock" variant="underlined" label="Data do Evento" type="date" />
-        <v-text-field ref="locationInput" v-model="localEvent.location" prepend-inner-icon="mdi-map-marker" variant="underlined" label="Local do Evento" />
-        <v-textarea v-model="localEvent.description" prepend-inner-icon="mdi-text" variant="underlined" label="Descrição do Evento" />
-        <v-file-input v-model="localEvent.image" prepend-inner-icon="mdi-image" variant="underlined" label="Imagem do Evento" @change="previewImage" />
-        <v-img v-if="imagePreview" :src="imagePreview" aspect-ratio="16/9" class="my-2"></v-img>
+        <v-text-field
+          v-model="localEvent.name"
+          prepend-inner-icon="mdi-calendar-edit"
+          variant="underlined"
+          label="Nome do Evento"
+          class="mb-4"
+        />
+        <v-text-field
+          v-model="localEvent.date"
+          prepend-inner-icon="mdi-calendar-clock"
+          variant="underlined"
+          label="Data do Evento"
+          type="date"
+          class="mb-4"
+        />
+        <v-text-field
+          ref="locationInput"
+          v-model="localEvent.location"
+          prepend-inner-icon="mdi-map-marker"
+          variant="underlined"
+          label="Local do Evento"
+          class="mb-4"
+        />
+        <v-textarea
+          v-model="localEvent.description"
+          prepend-inner-icon="mdi-text"
+          variant="underlined"
+          label="Descrição do Evento"
+          class="mb-4"
+        />
+        <v-file-input
+          v-model="localEvent.image"
+          prepend-inner-icon="mdi-image"
+          variant="underlined"
+          label="Imagem do Evento"
+          @change="previewImage"
+          class="mb-4 file-input"
+        />
+        <v-img
+          v-if="imagePreview"
+          :src="imagePreview"
+          aspect-ratio="16/9"
+          class="my-2"
+        ></v-img>
       </v-form>
     </v-card-text>
-    <v-card-actions>
-      <v-btn color="error" @click="resetForm">Cancelar</v-btn>
+    <v-card-actions class="justify-center">
+      <v-btn color="error" class="cancel-button" @click="resetForm">Cancelar</v-btn>
       <v-spacer />
-      <v-btn color="primary" :disabled="!isFormValid" @click="saveEvent">Salvar</v-btn>
+      <v-btn color="primary" class="save-button" :disabled="!isFormValid" @click="saveEvent">Salvar</v-btn>
     </v-card-actions>
   </v-card>
 </template>
+<style scoped>
+.text-center {
+  text-align: center;
+}
+.justify-center {
+  justify-content: center;
+}
+.mx-auto {
+  margin-left: auto;
+  margin-right: auto;
+}
+.my-5 {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+.mb-4 {
+  margin-bottom: 1rem;
+}
+.file-input {
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 5px;
+}
 
-
+</style>

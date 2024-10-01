@@ -27,7 +27,7 @@
             </v-row>
             <div v-else class="text-center">
               <v-icon color="grey" size="64">mdi-emoticon-sad-outline</v-icon>
-              <p>Nenhum evento cadastrado!</p>
+              <p>Não possue nenhum evento Cadastrado!</p>
             </div>
           </v-card-text>
         </v-card>

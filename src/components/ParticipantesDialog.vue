@@ -163,31 +163,20 @@ const cancelDelete = () => {
 
 // Função para remover o participante
 const deleteParticipant = () => {
-  if (participantIndexToDelete.value !== null) {
-    const participantIdToDelete = participants.value[participantIndexToDelete.value].participantId
-    participants.value.splice(participantIndexToDelete.value, 1)
-    updateLocalStorage(participantIdToDelete)
-    confirmDialog.value = false
-    participantIndexToDelete.value = null
-  }
+  participants.value.splice(participantIndexToDelete.value, 1)
+  updateLocalStorage()
+  confirmDialog.value = false
+  participantIndexToDelete.value = null
 }
 
 // Função para atualizar o localStorage
-const updateLocalStorage = (participantIdToDelete) => {
+const updateLocalStorage = () => {
   const storedParticipants = JSON.parse(localStorage.getItem('participants')) || []
-  const updatedParticipants = storedParticipants.filter(participant => participant.participantId !== participantIdToDelete)
+  const updatedParticipants = storedParticipants.filter(participant => participant.eventId !== participants.value[0].eventId)
+  updatedParticipants.push(...participants.value)
   localStorage.setItem('participants', JSON.stringify(updatedParticipants))
 }
 
-// Função para carregar os participantes do localStorage
-const loadParticipants = () => {
-  participants.value = JSON.parse(localStorage.getItem('participants')) || []
-}
-
-// Carregar os participantes quando o componente é montado
-onMounted(() => {
-  loadParticipants()
-})
 // Expondo a função openDialog para que ela possa ser chamada externamente
 defineExpose({ openDialog })
 </script>
