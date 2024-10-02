@@ -163,19 +163,25 @@ const cancelDelete = () => {
 
 // Função para remover o participante
 const deleteParticipant = () => {
-  participants.value.splice(participantIndexToDelete.value, 1)
-  updateLocalStorage()
-  confirmDialog.value = false
-  participantIndexToDelete.value = null
-}
+  participants.value.splice(participantIndexToDelete.value, 1);
+  updateLocalStorage();
+  confirmDialog.value = false;
+  participantIndexToDelete.value = null;
+};
 
 // Função para atualizar o localStorage
 const updateLocalStorage = () => {
-  const storedParticipants = JSON.parse(localStorage.getItem('participants')) || []
-  const updatedParticipants = storedParticipants.filter(participant => participant.eventId !== participants.value[0].eventId)
-  updatedParticipants.push(...participants.value)
-  localStorage.setItem('participants', JSON.stringify(updatedParticipants))
-}
+  if (participants.value.length === 0) {
+    localStorage.removeItem('participants');
+  } else {
+    const storedParticipants = JSON.parse(localStorage.getItem('participants')) || [];
+    const updatedParticipants = storedParticipants.filter(
+      participant => !participants.value.some(p => p.eventId === participant.eventId)
+    );
+    updatedParticipants.push(...participants.value);
+    localStorage.setItem('participants', JSON.stringify(updatedParticipants));
+  }
+};
 
 // Expondo a função openDialog para que ela possa ser chamada externamente
 defineExpose({ openDialog })
